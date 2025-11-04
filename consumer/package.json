@@ -1,0 +1,25 @@
+{
+  "name": "wplace-consumer",
+  "version": "1.0.0",
+  "description": "Consumer service for r/place clone - processes pixel queue and broadcasts updates",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "start": "bun run index.ts",
+    "test": "bun test"
+  },
+  "keywords": [
+    "websocket",
+    "queue",
+    "consumer",
+    "rplace"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "typescript": "^5.0.0"
+  }
+}

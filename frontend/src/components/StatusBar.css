@@ -1,0 +1,99 @@
+/**
+ * StatusBar Component Styles
+ * Styling for the status information bar
+ */
+
+.status-bar {
+  width: 100%;
+  max-width: 800px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  transition: border-color 0.3s ease;
+}
+
+.status-bar.rate-limited {
+  border-color: var(--error-color);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    border-color: var(--error-color);
+  }
+  50% {
+    border-color: var(--border-color);
+  }
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm);
+  background-color: var(--bg-primary);
+  border-radius: 4px;
+}
+
+.status-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-right: var(--spacing-md);
+}
+
+.status-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.status-value.success {
+  color: var(--success-color);
+}
+
+.status-value.error {
+  color: var(--error-color);
+}
+
+.user-id {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 250px;
+}
+
+.rate-limit-warning {
+  padding: var(--spacing-md);
+  background-color: rgba(255, 68, 68, 0.1);
+  border: 1px solid var(--error-color);
+  border-radius: 4px;
+  color: var(--error-color);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .status-bar {
+    padding: var(--spacing-md);
+  }
+
+  .status-item {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    text-align: center;
+  }
+
+  .status-label {
+    margin-right: 0;
+  }
+
+  .user-id {
+    max-width: 200px;
+  }
+}

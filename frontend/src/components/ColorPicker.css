@@ -1,0 +1,160 @@
+/**
+ * ColorPicker Component Styles
+ * Styling for color selection interface
+ */
+
+.color-picker {
+  width: 100%;
+  max-width: 600px;
+  padding: var(--spacing-lg);
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  border: 2px solid var(--border-color);
+}
+
+.color-picker h2 {
+  margin-bottom: var(--spacing-lg);
+  color: var(--accent-color);
+  font-size: 1.5rem;
+}
+
+.color-picker h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* Selected color display */
+.selected-color-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--bg-primary);
+  border-radius: 6px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.color-preview {
+  width: 60px;
+  height: 60px;
+  border: 3px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.color-code {
+  font-family: 'Courier New', monospace;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Preset colors section */
+.preset-colors {
+  margin-bottom: var(--spacing-lg);
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background-color: var(--bg-primary);
+  border-radius: 6px;
+}
+
+.color-button {
+  width: 50px;
+  height: 50px;
+  border: 3px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  font-size: 1.5rem;
+}
+
+.color-button:hover {
+  transform: scale(1.1);
+  border-color: var(--accent-color);
+}
+
+.color-button.active {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--bg-secondary), 0 0 0 4px var(--accent-color);
+}
+
+.checkmark {
+  color: var(--text-primary);
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+  font-weight: bold;
+}
+
+/* Custom color section */
+.custom-color {
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border-color);
+}
+
+.custom-color-input {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-md);
+  background-color: var(--bg-primary);
+  border-radius: 6px;
+}
+
+.color-input {
+  width: 80px;
+  height: 50px;
+  border: 3px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+}
+
+.color-input:hover {
+  border-color: var(--accent-color);
+}
+
+.color-text-input {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 1rem;
+  font-family: 'Courier New', monospace;
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  width: 120px;
+  text-align: center;
+}
+
+.color-text-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .color-picker {
+    padding: var(--spacing-md);
+  }
+
+  .color-grid {
+    grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+  }
+
+  .color-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .custom-color-input {
+    flex-direction: column;
+  }
+}
