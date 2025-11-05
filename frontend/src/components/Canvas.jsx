@@ -34,6 +34,9 @@ function Canvas({ onPixelClick, websocket }) {
   // Number of updates received (for debugging)
   const [updateCount, setUpdateCount] = useState(0)
 
+  // Loading state for initial canvas fetch
+  const [isLoading, setIsLoading] = useState(true)
+
   /**
    * Initialize canvas when component mounts
    * Sets up the canvas element and drawing context
@@ -56,6 +59,49 @@ function Canvas({ onPixelClick, websocket }) {
 
     console.log('Canvas initialized:', CANVAS_SIZE, 'x', CANVAS_SIZE)
   }, [])
+
+  /**
+   * Fetch initial canvas state from backend when component mounts
+   * This ensures new clients see all existing pixels
+   */
+  useEffect(() => {
+    const loadInitialCanvasState = async () => {
+      try {
+        console.log('Fetching initial canvas state...')
+        setIsLoading(true)
+
+        const response = await fetch('/api/canvas')
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch canvas: ${response.status}`)
+        }
+
+        const pixels = await response.json()
+        console.log(`Loading ${pixels.length} existing pixels...`)
+
+        // Draw all existing pixels on the canvas
+        pixels.forEach(pixel => {
+          const { x, y, color } = pixel
+          if (x >= 0 && x < CANVAS_SIZE && y >= 0 && y < CANVAS_SIZE) {
+            drawPixel(x, y, color)
+          }
+        })
+
+        console.log('Initial canvas state loaded successfully')
+        setUpdateCount(pixels.length)
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Failed to load initial canvas state:', error)
+        setIsLoading(false)
+        // Continue anyway - real-time updates will still work
+      }
+    }
+
+    // Only load if we have a canvas context
+    if (ctxRef.current) {
+      loadInitialCanvasState()
+    }
+  }, [ctxRef.current])
 
   /**
    * Listen for pixel updates from WebSocket
@@ -152,7 +198,9 @@ function Canvas({ onPixelClick, websocket }) {
     <div className="canvas-container">
       <div className="canvas-info">
         <span>Canvas: {CANVAS_SIZE}x{CANVAS_SIZE} pixels</span>
-        <span className="update-counter">Updates received: {updateCount}</span>
+        <span className="update-counter">
+          {isLoading ? 'Loading canvas...' : `Pixels: ${updateCount}`}
+        </span>
       </div>
 
       <canvas

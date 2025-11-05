@@ -25,6 +25,7 @@ import { validatePixelUpdate } from "./validator";
  */
 const config: ConsumerConfig = {
   backendWsUrl: "ws://localhost:8080/ws/queue",  // Backend WebSocket URL
+  backendHttpUrl: "http://localhost:8080",       // Backend HTTP URL
   frontendWsPort: 3001,                          // Port for frontend connections
   canvasWidth: 1000,                             // Canvas dimensions
   canvasHeight: 1000,
@@ -103,11 +104,11 @@ function startFrontendWebSocketServer(): void {
     hostname: "0.0.0.0", // Listen on all network interfaces
     port: config.frontendWsPort,
 
-    // Handle HTTP requests (WebSocket upgrade)
-    fetch(req, server) {
+    // Handle HTTP requests (WebSocket upgrade and API endpoints)
+    async fetch(req, server) {
       const url = new URL(req.url);
 
-      // Only accept WebSocket connections on /ws/canvas endpoint
+      // Handle WebSocket upgrade for /ws/canvas
       if (url.pathname === "/ws/canvas") {
         // Upgrade HTTP connection to WebSocket
         const upgraded = server.upgrade(req);
@@ -120,8 +121,81 @@ function startFrontendWebSocketServer(): void {
         return new Response("WebSocket upgrade failed", { status: 500 });
       }
 
+      // Handle GET /api/canvas - Fetch canvas state from backend
+      if (url.pathname === "/api/canvas" && req.method === "GET") {
+        try {
+          console.log("[Consumer] Fetching canvas state from backend...");
+
+          const backendUrl = `${config.backendHttpUrl}/api/canvas`;
+          const response = await fetch(backendUrl);
+
+          if (!response.ok) {
+            console.error(`[Consumer] Backend returned ${response.status}`);
+            return new Response("Failed to fetch canvas state", { status: response.status });
+          }
+
+          const data = await response.json();
+          console.log(`[Consumer] Returning ${data.length} pixels to frontend`);
+
+          return new Response(JSON.stringify(data), {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+          });
+        } catch (error) {
+          console.error("[Consumer] Error fetching canvas from backend:", error);
+          return new Response("Internal server error", { status: 500 });
+        }
+      }
+
+      // Handle POST /api/pixel - Proxy to backend
+      if (url.pathname === "/api/pixel" && req.method === "POST") {
+        try {
+          console.log("[Consumer] Proxying pixel request to backend...");
+
+          const body = await req.text();
+          const backendUrl = `${config.backendHttpUrl}/api/pixel`;
+
+          const response = await fetch(backendUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: body,
+          });
+
+          const responseText = await response.text();
+          console.log(`[Consumer] Backend responded with ${response.status}`);
+
+          return new Response(responseText, {
+            status: response.status,
+            headers: {
+              "Content-Type": "text/plain",
+              "Access-Control-Allow-Origin": "*",
+            },
+          });
+        } catch (error) {
+          console.error("[Consumer] Error proxying pixel to backend:", error);
+          return new Response("Internal server error", { status: 500 });
+        }
+      }
+
+      // Handle CORS preflight requests
+      if (req.method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+          },
+        });
+      }
+
       // Return 404 for other paths
-      return new Response("Not found. Use /ws/canvas for WebSocket connection", {
+      return new Response("Not found. Available endpoints: /ws/canvas (WebSocket), /api/canvas (GET), /api/pixel (POST)", {
         status: 404,
       });
     },

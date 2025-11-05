@@ -12,6 +12,7 @@ type Server struct {
 	queue       *PixelQueue
 	rateLimiter *RateLimiter
 	hub         *Hub
+	db          *Database
 }
 
 // PixelUpdate represents a single pixel change on the canvas
@@ -68,6 +69,12 @@ func (s *Server) handlePixelUpdate(w http.ResponseWriter, r *http.Request) {
 	// Add timestamp to the pixel update (in milliseconds)
 	pixel.Timestamp = currentTimeMillis()
 
+	// Save pixel to database for persistence
+	if err := s.db.SavePixel(pixel); err != nil {
+		log.Printf("Warning: Failed to save pixel to database: %v", err)
+		// Continue anyway - database failure shouldn't block real-time updates
+	}
+
 	// Try to add the pixel to the queue
 	if err := s.queue.Enqueue(pixel); err != nil {
 		log.Printf("Failed to enqueue pixel: %v", err)
@@ -111,6 +118,50 @@ func (s *Server) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	go client.readPump()
 
 	log.Printf("New WebSocket consumer connected from %s", r.RemoteAddr)
+}
+
+// handleGetCanvas returns the full canvas state from the database
+func (s *Server) handleGetCanvas(w http.ResponseWriter, r *http.Request) {
+	// Only accept GET requests
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Enable CORS for frontend access
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Content-Type", "application/json")
+
+	// Handle preflight OPTIONS request
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// Get all pixels from the database
+	pixels, err := s.db.GetAllPixels()
+	if err != nil {
+		log.Printf("Failed to retrieve canvas state: %v", err)
+		http.Error(w, "Failed to retrieve canvas state", http.StatusInternalServerError)
+		return
+	}
+
+	// Get pixel count for logging
+	count, _ := s.db.GetPixelCount()
+	log.Printf("Canvas state requested - returning %d pixels", count)
+
+	// Return pixels as JSON
+	// If no pixels exist, return empty array
+	if pixels == nil {
+		pixels = []PixelUpdate{}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(pixels); err != nil {
+		log.Printf("Failed to encode canvas state: %v", err)
+	}
 }
 
 // validatePixel checks if a pixel update is valid

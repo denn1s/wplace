@@ -29,6 +29,7 @@ export interface ValidationResult {
  */
 export interface ConsumerConfig {
   backendWsUrl: string;      // WebSocket URL to connect to backend
+  backendHttpUrl: string;    // HTTP URL to connect to backend API
   frontendWsPort: number;    // Port to listen for frontend connections
   canvasWidth: number;       // Maximum canvas width
   canvasHeight: number;      // Maximum canvas height

@@ -7,6 +7,13 @@ import (
 )
 
 func main() {
+	// Initialize SQLite database for canvas persistence
+	db, err := NewDatabase("./canvas.db")
+	if err != nil {
+		log.Fatal("Failed to initialize database:", err)
+	}
+	defer db.Close()
+
 	// Initialize the pixel queue with a maximum capacity of 10,000 items
 	queue := NewPixelQueue(10000)
 
@@ -25,10 +32,12 @@ func main() {
 		queue:       queue,
 		rateLimiter: rateLimiter,
 		hub:         hub,
+		db:          db,
 	}
 
 	// Register HTTP endpoints
 	http.HandleFunc("/api/pixel", server.handlePixelUpdate)
+	http.HandleFunc("/api/canvas", server.handleGetCanvas)
 	http.HandleFunc("/ws/queue", server.handleWebSocket)
 
 	// Add a simple health check endpoint
@@ -41,6 +50,7 @@ func main() {
 	log.Println("Server starting on 0.0.0.0:8080")
 	log.Println("Endpoints:")
 	log.Println("  POST   /api/pixel  - Submit pixel updates")
+	log.Println("  GET    /api/canvas - Get full canvas state")
 	log.Println("  WS     /ws/queue   - WebSocket for consumers")
 	log.Println("  GET    /health     - Health check")
 
